@@ -1,0 +1,8 @@
+prefix=/home/nickolay/demonstration/install
+
+Name: tc3-ros-package
+Description: Description of tc3-ros-package
+Version: 0.0.0
+Cflags: 
+Libs: -L${prefix}/lib 
+Requires: 

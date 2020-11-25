@@ -1,0 +1,2 @@
+executive_smach/executive_smach:executive_smach/smach:executive_smach/smach_msgs:executive_smach/smach_ros:machine:tc3-ros-package/aruco_msgs:tc3-ros-package/blobs_msgs:tc3-ros-package/circle_msgs:tc3-ros-package/line_msgs:tc3-ros-package/tc3-ros-package
+-DCATKIN_DEVEL_PREFIX=/home/nickolay/demonstration/devel -DCMAKE_INSTALL_PREFIX=/home/nickolay/demonstration/install -G Unix Makefiles
