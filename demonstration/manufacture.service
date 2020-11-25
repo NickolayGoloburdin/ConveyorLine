@@ -1,0 +1,8 @@
+[Unit]
+Description=Angle manufacture
+
+[Service]
+ExecStart=/etc/systemd/system/start_manufacture.sh
+
+[Install]
+WantedBy=multi-user.target
