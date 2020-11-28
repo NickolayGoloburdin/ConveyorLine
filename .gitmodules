@@ -1,3 +1,6 @@
 [submodule "demonstration/executive_smach"]
 	path = demonstration/executive_smach
 	url = https://github.com/ros/executive_smach.git
+[submodule "demonstration/src/executive_smach"]
+	path = demonstration/src/executive_smach
+	url = https://github.com/ros/executive_smach.git
