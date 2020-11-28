@@ -4,3 +4,6 @@
 [submodule "demonstration/src/executive_smach"]
 	path = demonstration/src/executive_smach
 	url = https://github.com/ros/executive_smach.git
+[submodule "demonstration/src/tc3-ros-package"]
+	path = demonstration/src/tc3-ros-package
+	url = https://github.com/AppliedRobotics/tc3-ros-package.git
