@@ -1,8 +1,0 @@
-prefix=/home/nickolay/demonstration/install
-
-Name: line_msgs
-Description: Description of line_msgs
-Version: 0.0.0
-Cflags: -I${prefix}/include
-Libs: -L${prefix}/lib 
-Requires: message_runtime geometry_msgs std_msgs
