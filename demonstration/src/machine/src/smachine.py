@@ -15,16 +15,16 @@ port = 9090
 sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
 
 # Bind the socket to the port
-server_address = ('192.168.1.54', port)
+server_address = ('192.168.0.109', port)
 sock.bind(server_address)
 c1_state = 1;c2_state = 1;t_state = 1;g_state = 1;p_state = 1;d_state = 1   #1/0 - working or not working
 
-c1_adress = ('192.168.1.64', port)#Clients adresses IP
-c2_adress = ('192.168.1.47', port)
-t_adress = ('192.168.1.45', port)
-g_adress = ('192.168.1.46', port)
-p_adress = ("192.168.1.59", port)
-d_adress = ('192.168.1.57', port)
+c1_adress = ('192.168.0.105', port)#Clients adresses IP
+c2_adress = ('192.168.0.106', port)
+t_adress = ('192.168.0.110', port)
+g_adress = ('192.168.0.102', port)
+p_adress = ("192.168.0.101", port)
+d_adress = ('192.168.0.103', port)
 
 def GetUDPdata(sock, delay):
     while True:
@@ -51,12 +51,13 @@ def GetUDPdata(sock, delay):
 
 
 def getArucoCoordinates(camera,max_x,max_y):
+    rospy.sleep(1.0)
+    camera_data = rospy.wait_for_message("/markers", MarkerArray)
+    while((camera_data.header.frame_id != camera) or (camera_data.markers[0].pose.pose.position.y < max_y) or (camera_data.markers[0].pose.pose.position.x < max_x )):
         camera_data = rospy.wait_for_message("/markers", MarkerArray)
-        while((camera_data.header.frame_id != camera) or (camera_data.markers[0].pose.pose.position.y < max_y) or (camera_data.markers[0].pose.pose.position.x < max_x )):
-            camera_data = rospy.wait_for_message("/markers", MarkerArray)
-        y = 1000*(camera_data.markers[0].pose.pose.position.y)
-        x = 1000*(camera_data.markers[0].pose.pose.position.x)
-        return x,y
+    y = 1000*(camera_data.markers[0].pose.pose.position.y)
+    x = 1000*(camera_data.markers[0].pose.pose.position.x)
+    return x,y
 
 
 class BallOnTheTBPos1(smach.State):
@@ -69,9 +70,11 @@ class BallOnTheTBPos1(smach.State):
     def Tb3Pos1(self):
         global t_state, sock, t_adress
         sent = sock.sendto("t:0#".encode(),t_adress)
+        t_state = 1
         rospy.sleep(0.2)
         while t_state != 0:
             rospy.sleep(0.2)
+        t_state = 1
         return 'carry the ball'
 
     def execute(self,userdata):
@@ -119,11 +122,15 @@ class BallOnTheTBPos2(smach.State):
         x,y = self.getPositionAngle(x_c, y_c)
         commandLine = self.getCommandLineAngle(x,y)
         
-        for command in commandLine:
+        for i, command in enumerate(commandLine):
+            if i == 1:
+                rospy.sleep(2.0)
             sent = sock.sendto(command.encode(), g_adress)
+            g_state = 1
             rospy.sleep(0.2)
             while g_state != 0:
                 rospy.sleep(0.2)
+        g_state = 1
         return 'take the ball'
 
     def execute(self,userdata):
@@ -152,9 +159,11 @@ class BallOnTheLine1(smach.State):
         sent = sock.sendto(commandLine[2].encode(),t_adress)
         sent = sock.sendto(commandLine[0].encode(),c1_adress)
         sent = sock.sendto(commandLine[1].encode(),g_adress)
+        c1_state = 1
         rospy.sleep(0.2)
-        while g_state != 0 or c1_state != 0:
+        while c1_state != 0:
             rospy.sleep(0.2)
+        c1_state = 1
         return 'move the ball to delta'
         
 
@@ -175,7 +184,7 @@ class DeltaGrabBall(smach.State):
 
     def getpositionDelta(self,x,y):
         y_d = - x - 15
-        x_d = - y + 140
+        x_d = - y + 155
         return x_d,y_d
 
     def getCommandLineDelta(self,x,y):
@@ -197,9 +206,11 @@ class DeltaGrabBall(smach.State):
         commandLine = self.getCommandLineDelta(x,y)
         for command in commandLine:
             sent = sock.sendto(command.encode(),d_adress)
+            d_state = 1
             rospy.sleep(0.2)
             while d_state != 0:
                 rospy.sleep(0.2)
+        d_state = 1
         return 'grab the ball'
 
 
@@ -228,9 +239,11 @@ class BallOnTheLine2(smach.State):
         commandLine = self.getCommandLineConveyor2()
         sent = sock.sendto(commandLine[0].encode(),d_adress)
         sent = sock.sendto(commandLine[1].encode(),c2_adress)
+        c2_state = 1
         rospy.sleep(0.2)
         while c2_state != 0:
             rospy.sleep(0.2)
+        c2_state = 1
         return 'move the ball'
         
 
@@ -254,8 +267,8 @@ class ManipulatorGrabTheBall(smach.State):
         Y = int(x_p*math.sin(math.pi/4)+(y_p)*math.cos(math.pi/4))
         X = int(x_p*math.cos(math.pi*3/4) + y_p*math.sin(math.pi/4))
         fi = math.atan2(Y,X)
-        Y-=20*math.sin(fi)
-        X-=20*math.cos(fi)
+        Y+=20*math.sin(fi)
+        X+=20*math.cos(fi)
         print(X,Y)
         return X,Y
 
@@ -264,9 +277,9 @@ class ManipulatorGrabTheBall(smach.State):
         commandLine.append('p:{}:{}:1:0#'.format(x,y))
         commandLine.append('p:{}:{}:0:1#'.format(x,y))
         commandLine.append('p:{}:{}:1:1#'.format(x,y))
-        commandLine.append('p:210:210:1:0#')
-        commandLine.append('p:210:210:0:0#')
-        commandLine.append('p:210:210:1:1#')
+        commandLine.append('p:220:250:1:0#')
+        commandLine.append('p:220:250:0:0#')
+        commandLine.append('p:220:250:1:1#')
         return commandLine
 
 
@@ -278,10 +291,11 @@ class ManipulatorGrabTheBall(smach.State):
         
         for command in commandLine:
             sent = sock.sendto(command.encode(),p_adress)
+            p_state = 1
             rospy.sleep(0.2)
             while p_state!=0:
                 rospy.sleep(0.2)
-            
+        p_state = 1
         return 'grab the ball by pallet'
 
 
@@ -292,18 +306,14 @@ class ManipulatorGrabTheBall(smach.State):
         if 1==2:
             return 'break'
         
-
-
-
-
 def main():
     global sock
-    rospy.init_node('smach_conveyor_state_machine')
+    rospy.init_node('smach_conveyor_state_machine', disable_signals=True)
 
     # Create a SMACH state machine
     sm = smach.StateMachine(outcomes=['ERROR'])
     
-    thread.start_new_thread(GetUDPdata, (sock, 0.02 ))
+    thread.start_new_thread(GetUDPdata, (sock, 0.05 ))
     with sm:
         # Add states to the container
         smach.StateMachine.add('BALLONTHETBPOS1', BallOnTheTBPos1(), 
